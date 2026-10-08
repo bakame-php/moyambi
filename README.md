@@ -7,12 +7,22 @@ Moyambi
 - [UriTemplate extraction](https://uri.thephpleague.com/uri/7.0/uri-template/#variable-extraction)
 
 You can use:
-- `League\Uri\UrlPattern` instances
-- `League\Uri\UriTemplate` instances
-- or string starting with `pattern:` or `template:` to specify the route to select.
 
-When using `UriTemplate` only the URI path is considered for routing. When using `URLPattern`
-the full URI object **CAN** be used depending on the `URLPattern` instance used.
+The `URLPattern` API via `League\Uri\UrlPattern` instances or string prefixed with `pattern:`
+The `URI Template` API via `League\Uri\UriTemplate` instances or string prefixed with `template:` 
+
+to specify the route to select.
+
+When using
+
+- `UriTemplate` **ONLY** the URI path is considered for routing. 
+- `URLPattern` the full URI object **MAY** be used depending on the `URLPattern` instance used.
+
+When an `UriTemplate` is used the route arguments are available via the `League\Uri\UriTemplate\ExtractionResult` instance
+
+When an `UrlPattern` is used the route arguments are available via the `League\Uri\UrlPattern\Result` instance
+
+**You can mix both strategies in your router!!**
 
 ```php
 <?php
@@ -40,23 +50,23 @@ $router = new Router(
 );
 
 $router->get('pattern:/hello/:name', function (Request $request, Response $response, Result $routeMatch) {
+    $name = $routeMatch->path->string('name', 'World');
     $body = $response->getBody();
-    $body->write('Hello '.$routeMatch->path->string('name', 'World').'!');
+    $body->write('Hello '.$name.'!');
     
-    return $response
-            ->withStatus(200)
-            ->withHeader('Content-Type', 'text/html')
-            ->withBody($body);
+    return $response->withBody($body);
 });
 
-$request =  new ServerRequestCreator(
+$request = new ServerRequestCreator(
     serverRequestFactory: $factory,
     uriFactory: $factory,
     uploadedFileFactory: $factory,
     streamFactory: $factory,
 )->fromGlobals()
 
-new SapiEmitter()->emit($router->handle($request));
+new SapiEmitter()->emit(
+    $router->handle($request)
+);
 ```
 
 To work as expected **Bakame\Moyambi** requires:

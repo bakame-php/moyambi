@@ -1,6 +1,29 @@
 {
   "name": "bakame/moyambi",
   "type": "library",
+  "description": "a lightweight PSR-15 router using URLPattern and UriTemplate for route selection",
+  "license": "MIT",
+  "homepage" : "https://github.com/bakame-php/moyambi",
+  "authors": [
+    {
+      "name" : "Ignace Nyamagana Butera",
+      "email" : "nyamsprod@gmail.com",
+      "homepage" : "https://github.com/nyamsprod/",
+      "role" : "Developer"
+    }
+  ],
+  "support": {
+    "docs": "https://github.com/bakame-php/moyambi",
+    "issues": "https://github.com/bakame-php/moyambi/issues",
+    "rss": "https://github.com/bakame-php/moyambi/releases.atom",
+    "source": "https://github.com/bakame-php/moyambi"
+  },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/nyamsprod"
+    }
+  ],
   "keywords": [
     "psr15",
     "router",
@@ -41,7 +64,6 @@
     "phpstan": "phpstan analyse -c phpstan.neon --ansi --memory-limit=256M",
     "phpunit": "XDEBUG_MODE=coverage phpunit --coverage-text",
     "phpunit:no-coverage": "phpunit --no-coverage",
-    "phpunit:no-polyfill": "phpunit --no-coverage --exclude-group=time-polyfill",
     "test": [
       "@phpunit",
       "@phpstan",
