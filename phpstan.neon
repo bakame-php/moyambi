@@ -9,6 +9,5 @@ parameters:
     paths:
         - src
     reportUnmatchedIgnoredErrors: true
-    treatPhpDocTypesAsCertain: false
     parallel:
         processTimeout: 300.0

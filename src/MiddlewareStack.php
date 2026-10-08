@@ -8,22 +8,25 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use ValueError;
 
 use function array_reverse;
 
-final readonly class MiddlewareStack implements RequestHandlerInterface
+final class MiddlewareStack implements RequestHandlerInterface
 {
-    /**
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function __construct(
-        private RequestHandlerInterface $handler,
-        private array $middlewares
-    ) {
-        foreach ($this->middlewares as $middleware) {
-            $middleware instanceof MiddlewareInterface || throw new ValueError('The middleware must implement the MiddlewareInterface');
+    /** @var list<MiddlewareInterface> */
+    private array $middlewares = [];
+
+    public function __construct(private RequestHandlerInterface $handler)
+    {
+    }
+
+    public function push(MiddlewareInterface ...$middlewares): self
+    {
+        foreach ($middlewares as $middleware) {
+            $this->middlewares[] = $middleware;
         }
+
+        return $this;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface

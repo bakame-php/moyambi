@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace Bakame\Moyambi;
 
+use BackedEnum;
 use Closure;
-use League\Uri\UriTemplate;
-use League\Uri\UriTemplate\ExtractionResult;
 use League\Uri\UrlPattern;
 use League\Uri\UrlPattern\Result;
+use League\Uri\UrlPatternBuilder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use ValueError;
 
-use function in_array;
 use function is_string;
-use function str_starts_with;
 use function strtoupper;
 use function substr;
 use function trim;
@@ -24,22 +22,26 @@ use function trim;
 final readonly class Route
 {
     /** @var list<non-empty-string> */
-    private array $methods;
+    public array $methods;
+    /** @var list<MiddlewareInterface> */
+    public array $middlewares;
 
     /**
-     * @param list<non-empty-string> $methods
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
+     * @param list<mixed> $methods
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|UriTemplatePatternResult): ResponseInterface $handler
+     * @param list<mixed> $middlewares
      */
     public function __construct(
         array $methods,
-        private UrlPattern|UriTemplate $pattern,
-        private Closure $handler,
+        public UrlPattern|UriTemplatePattern $pattern,
+        public Closure $handler,
         public RoutePrecedence $precedence,
-        private array $middlewares = [],
+        array $middlewares = [],
     ) {
-        foreach ($this->middlewares as $middleware) {
+        $fMiddlewares = [];
+        foreach ($middlewares as $middleware) {
             $middleware instanceof MiddlewareInterface || throw new ValueError('The middleware must implement the MiddlewareInterface');
+            $fMiddlewares[] = $middleware;
         }
 
         $fMethods = [];
@@ -47,69 +49,49 @@ final readonly class Route
             (is_string($method) &&  '' !== trim($method)) || throw new ValueError('The method must be a non empty string');
             $fMethods[] = strtoupper($method);
         }
+
         $this->methods = $fMethods;
+        $this->middlewares = $fMiddlewares;
     }
 
     /**
-     * @param list<non-empty-string> $methods
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
+     * @param list<mixed> $methods
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|UriTemplatePatternResult): ResponseInterface $handler
+     * @param list<mixed> $middlewares
      */
     public static function create(
         array $methods,
-        UrlPattern|UriTemplate|string $pattern,
+        UrlPattern|UriTemplatePattern|string $pattern,
         Closure $handler,
         array $middlewares = [],
-        RoutePrecedence|int $precedence = 0,
+        RoutePrecedence $precedence = RoutePrecedence::Regular,
     ): self {
-
-        $pattern = match (true) {
-            $pattern instanceof UrlPattern,
-            $pattern instanceof UriTemplate => $pattern,
-            str_starts_with($pattern, 'pattern:') => UrlPattern::from(substr($pattern, 8)),
-            str_starts_with($pattern, 'template:') => new UriTemplate(substr($pattern, 9)),
-            default => throw new ValueError('The route pattern must use the "pattern:" or "template:" scheme.'),
-        };
-
         return new self(
             $methods,
-            $pattern,
+            match (true) {
+                $pattern instanceof UrlPattern,
+                $pattern instanceof UriTemplatePattern => $pattern,
+                str_starts_with($pattern, 'pattern:') => new UrlPatternBuilder(path: substr($pattern, 8))->build(),
+                str_starts_with($pattern, 'template:') => new UriTemplatePatternBuilder(path: substr($pattern, 9))->build(),
+                default => throw new ValueError('The pattern must be a non empty string starting with "pattern:" or "template:"'),
+            },
             $handler,
-            $precedence instanceof RoutePrecedence ? $precedence : new RoutePrecedence($precedence),
+            $precedence,
             $middlewares,
-        );
-    }
-
-    public function match(ServerRequestInterface $request): Result|ExtractionResult|null
-    {
-        if ([] !== $this->methods && !in_array($request->getMethod(), $this->methods, true)) {
-            return null;
-        }
-
-        if ($this->pattern instanceof UrlPattern) {
-            return $this->pattern->extract($request->getUri());
-        }
-
-        $result = $this->pattern->extract($request->getUri()->getPath());
-
-        return $result->isSuccessful() ? $result : null;
-    }
-
-    public function process(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        Result|ExtractionResult $routeMatch,
-    ): ResponseInterface {
-        return new MiddlewareStack(
-            handler: new RouteHandler($this->handler, $response, $routeMatch),
-            middlewares: $this->middlewares,
-        )->handle(
-            $request->withAttribute($routeMatch::class, $routeMatch)
         );
     }
 
     public function acceptsAnyMethod(): bool
     {
         return [] === $this->methods;
+    }
+
+    public function supportsMethod(BackedEnum|string $method): bool
+    {
+        return $this->acceptsAnyMethod() || in_array(
+            strtoupper($method instanceof BackedEnum ? (string) $method->value : $method),
+            $this->methods,
+            true
+        );
     }
 }

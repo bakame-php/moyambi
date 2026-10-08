@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Bakame\Moyambi;
 
-use League\Uri\UriTemplate\ExtractionResult;
-use League\Uri\UrlPattern;
 use League\Uri\UrlPattern\Result;
+use League\Uri\UrlPatternBuilder;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,9 +14,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use ValueError;
-
-use function assert;
 
 final class RouterTest extends TestCase
 {
@@ -72,11 +68,13 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_dispatches_a_request_to_a_matching_route(): void
     {
-        $this->router->get('pattern:/users/:id', static function (ServerRequestInterface $request, ResponseInterface $response, Result|ExtractionResult $routeMatch): ResponseInterface {
+        $pattern = new UrlPatternBuilder(path: '/users/:id')->build();
 
-            assert($routeMatch instanceof Result);
+        $this->router->get($pattern, static function (ServerRequestInterface $request, ResponseInterface $response, Result|UriTemplatePatternResult $arguments): ResponseInterface {
+
+            self::assertInstanceOf(Result::class, $arguments);
             $body = $response->getBody();
-            $body->write((string) $routeMatch->path->string('id'));
+            $body->write((string) $arguments->path->string('id'));
 
             return $response->withBody($body);
         });
@@ -90,10 +88,12 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_dispatches_a_request_to_the_not_foud_handler(): void
     {
-        $this->router->get('pattern:/users/:id', static function (ServerRequestInterface $request, ResponseInterface $response, Result|ExtractionResult $routeMatch): ResponseInterface {
-            assert($routeMatch instanceof Result);
+        $pattern = new UrlPatternBuilder(path: '/users/:id')->build();
+
+        $this->router->get($pattern, static function (ServerRequestInterface $request, ResponseInterface $response, Result|UriTemplatePatternResult $arguments): ResponseInterface {
+            self::assertInstanceOf(Result::class, $arguments);
             $body = $response->getBody();
-            $body->write((string) $routeMatch->path->string('id'));
+            $body->write((string) $arguments->path->string('id'));
 
             return $response->withBody($body);
         });
@@ -106,26 +106,28 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_tests_the_highest_precedence_matching_route_wins(): void
     {
+        $pattern1 = new UrlPatternBuilder(path: '/users/:id')->build();
+        $pattern2 = new UrlPatternBuilder(path: '/users/me')->build();
+
         $this->router
             ->get(
-                'pattern:/users/:id',
+                $pattern1,
                 static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
                     $body = $response->getBody();
                     $body->write('generic');
 
                     return $response->withBody($body);
                 },
-                precedence: 10,
+                precedence: RoutePrecedence::Lower,
             )
             ->get(
-                'pattern:/users/me',
+                $pattern2,
                 static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
                     $body = $response->getBody();
                     $body->write('specific');
 
                     return $response->withBody($body);
                 },
-                precedence: 20,
             );
 
         $response = $this->router->handle($this->factory->createServerRequest('GET', 'https://example.com/users/me'));
@@ -137,9 +139,12 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_tests_first_matching_route_wins_when_precedence_is_equal(): void
     {
+        $pattern1 = new UrlPatternBuilder(path: '/users/:id')->build();
+        $pattern2 = new UrlPatternBuilder(path: '/users/me')->build();
+
         $this->router
             ->get(
-                'pattern:/users/:id',
+                $pattern1,
                 static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
                     $body = $response->getBody();
                     $body->write('first');
@@ -148,7 +153,7 @@ final class RouterTest extends TestCase
                 },
             )
             ->get(
-                'pattern:/users/me',
+                $pattern2,
                 static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
                     $body = $response->getBody();
                     $body->write('last');
@@ -173,16 +178,18 @@ final class RouterTest extends TestCase
 
             return $response->withBody($body);
         };
+        $pattern = new UrlPatternBuilder(path: '/users')->build();
+        $template = new UriTemplatePatternBuilder(path: '/users')->build();
 
         $this->router
-            ->get(UrlPattern::from('/users'), $handler)
-            ->post(UrlPattern::from('/users'), $handler)
-            ->patch(UrlPattern::from('/users'), $handler)
-            ->delete(UrlPattern::from('/users'), $handler)
-            ->options(UrlPattern::from('/users'), $handler)
-            ->head(UrlPattern::from('/users'), $handler)
-            ->query(UrlPattern::from('/users'), $handler)
-            ->put(UrlPattern::from('/users'), $handler);
+            ->get($pattern, $handler)
+            ->post($template, $handler)
+            ->patch($pattern, $handler)
+            ->delete($template, $handler)
+            ->options($pattern, $handler)
+            ->head($template, $handler)
+            ->query($pattern, $handler)
+            ->put($template, $handler);
 
         $response = $this->router->handle($this->factory->createServerRequest($method, 'https://example.com/users'));
 
@@ -210,9 +217,10 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_prefers_a_specific_http_method_over_any(): void
     {
+        $pattern = new UrlPatternBuilder(path: '/users')->build();
         $this->router
             ->any(
-                UrlPattern::from('/users'),
+                $pattern,
                 static function (
                     ServerRequestInterface $request,
                     ResponseInterface $response,
@@ -224,7 +232,7 @@ final class RouterTest extends TestCase
                 },
             )
             ->get(
-                UrlPattern::from('/users'),
+                $pattern,
                 static function (
                     ServerRequestInterface $request,
                     ResponseInterface $response,
@@ -248,7 +256,7 @@ final class RouterTest extends TestCase
         $middleware = $this->middleware($events, 'before-route-middleware', 'after-route-middleware');
 
         $this->router->get(
-            UrlPattern::from('/users'),
+            'pattern:/users',
             static function (ServerRequestInterface $request, ResponseInterface $response) use (&$events): ResponseInterface {
                 $events[] = 'inside-route-handler';
 
@@ -270,13 +278,13 @@ final class RouterTest extends TestCase
     public function it_processes_global_middleware(): void
     {
         $events = [];
-
         $middleware = $this->middleware($events, 'before-global-middleware', 'after-global-middleware');
+        $pattern = new UrlPatternBuilder(path: '/users')->build();
 
         $this->router
             ->addMiddleware($middleware)
             ->get(
-                UrlPattern::from('/users'),
+                $pattern,
                 static function (ServerRequestInterface $request, ResponseInterface $response) use (&$events): ResponseInterface {
                     $events[] = 'inside-route-handler';
 
@@ -327,10 +335,16 @@ final class RouterTest extends TestCase
     }
 
     #[Test]
-    public function it_fails_to_add_a_route_with_an_invalid_prefix(): void
+    public function it_does_not_ignore_multiple_trailing_slashes(): void
     {
-        $this->expectException(ValueError::class);
+        $this->router->get(
+            'template:/users/{id}/found',
+            static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $response
+        );
 
-        $this->router->get('/users', static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $response);
+        $request = $this->factory->createServerRequest('GET', 'https://example.com/users/42/found//');
+        $response = $this->router->handle($request);
+
+        self::assertSame(404, $response->getStatusCode());
     }
 }

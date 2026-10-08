@@ -7,6 +7,7 @@
 /.php-cs-fixer.php            export-ignore
 /docs                         export-ignore
 /build                        export-ignore
+/example                      export-ignore
 /test_files                   export-ignore
 /CHANGELOG.md                 export-ignore
 /Makefile                     export-ignore
