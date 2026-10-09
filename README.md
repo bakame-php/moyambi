@@ -30,7 +30,7 @@ When an `UrlPattern` is used the route arguments are available via the `League\U
 use Bakame\Moyambi\Router;
 use Bakame\Moyambi\StaticResponseHandler;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
-use League\Uri\UrlPattern\Result;
+use League\Uri\UriTemplate\ExtractionResult;use League\Uri\UrlPattern\Result;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Message\ResponseInterface as Request;
@@ -49,8 +49,8 @@ $router = new Router(
     ),
 );
 
-$router->get('pattern:/hello/:name', function (Request $request, Response $response, Result $routeMatch) {
-    $name = $routeMatch->path->string('name', 'World');
+$router->get('template:/hello/{name}', function (Request $request, Response $response, ExtractionResult $routeMatch) {
+    $name = $routeMatch->string('name', 'World');
     $body = $response->getBody();
     $body->write('Hello '.$name.'!');
     

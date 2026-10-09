@@ -88,13 +88,7 @@ final class Router implements RequestHandlerInterface
      */
     public function get(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -103,13 +97,7 @@ final class Router implements RequestHandlerInterface
      */
     public function post(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -118,13 +106,7 @@ final class Router implements RequestHandlerInterface
      */
     public function put(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -133,13 +115,7 @@ final class Router implements RequestHandlerInterface
      */
     public function patch(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -148,13 +124,7 @@ final class Router implements RequestHandlerInterface
      */
     public function delete(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -163,13 +133,7 @@ final class Router implements RequestHandlerInterface
      */
     public function query(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -178,25 +142,7 @@ final class Router implements RequestHandlerInterface
      */
     public function head(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [self::httpMethod(__METHOD__)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
-    }
-
-    /**
-     * @param non-empty-string $method
-     *
-     * @return non-empty-string
-     */
-    private static function httpMethod(string $method): string
-    {
-        $res = strtoupper(substr($method, strlen(self::class) + 2));
-
-        return '' !== $res ? $res : throw new ValueError('The HTTP method "'.$method.'" is invalid.');
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -205,13 +151,7 @@ final class Router implements RequestHandlerInterface
      */
     public function options(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [substr(__METHOD__, strlen(self::class) + 2)],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
     }
 
     /**
@@ -220,12 +160,33 @@ final class Router implements RequestHandlerInterface
      */
     public function any(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence|int $precedence = 0): self
     {
-        return $this->add(Route::create(
-            [],
-            $pattern,
-            $handler,
-            $middlewares,
-            $precedence,
-        ));
+        return $this->map([], $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param list<non-empty-string> $methods
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function map(
+        array $methods,
+        UrlPattern|UriTemplate|string $pattern,
+        Closure $handler,
+        array $middlewares = [],
+        RoutePrecedence|int $precedence = 0
+    ): self {
+        return $this->add(Route::create($methods, $pattern, $handler, $middlewares, $precedence));
+    }
+
+    /**
+     * @param non-empty-string $method
+     *
+     * @return list<non-empty-string>
+     */
+    private static function httpMethod(string $method): array
+    {
+        $res = strtoupper(substr($method, strlen(self::class) + 2));
+
+        return '' !== $res ? [$res] : throw new ValueError('The HTTP method "'.$method.'" is invalid.');
     }
 }

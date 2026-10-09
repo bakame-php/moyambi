@@ -68,7 +68,7 @@ final readonly class Route
             $pattern instanceof UriTemplate => $pattern,
             str_starts_with($pattern, 'pattern:') => UrlPattern::from(substr($pattern, 8)),
             str_starts_with($pattern, 'template:') => new UriTemplate(substr($pattern, 9)),
-            default => throw new ValueError('The route pattern must use the "pattern:" or "template:" scheme.'),
+            default => throw new ValueError('The route string pattern must use the "pattern:" or "template:" prefix.'),
         };
 
         return new self(
