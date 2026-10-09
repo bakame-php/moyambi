@@ -98,13 +98,13 @@ final readonly class Route
     public function process(
         ServerRequestInterface $request,
         ResponseInterface $response,
-        Result|ExtractionResult $routeMatch,
+        Result|ExtractionResult $routeArgs,
     ): ResponseInterface {
         return new MiddlewareStack(
-            handler: new RouteHandler($this->handler, $response, $routeMatch),
+            handler: new RouteHandler($this->handler, $response, $routeArgs),
             middlewares: $this->middlewares,
         )->handle(
-            $request->withAttribute($routeMatch::class, $routeMatch)
+            $request->withAttribute($routeArgs::class, $routeArgs)
         );
     }
 

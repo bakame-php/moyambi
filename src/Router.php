@@ -62,23 +62,23 @@ final class Router implements RequestHandlerInterface
 
         /** @var ?Route $matchedRoute */
         $matchedRoute = null;
-        /** @var ?Result $matchedResult */
-        $matchedResult = null;
+        /** @var Result|ExtractionResult|null $matchedRouteArgs */
+        $matchedRouteArgs = null;
 
         foreach ($this->routes as $route) {
-            $result = $route->match($request);
-            if (null === $result) {
+            $routeArgs = $route->match($request);
+            if (null === $routeArgs) {
                 continue;
             }
 
             if (null === $matchedRoute || 0 < RouteComparator::compare($route, $matchedRoute)) {
                 $matchedRoute = $route;
-                $matchedResult = $result;
+                $matchedRouteArgs = $routeArgs;
             }
         }
 
-        return $matchedRoute instanceof Route && null !== $matchedResult
-            ? $matchedRoute->process($request, $response, $matchedResult)
+        return $matchedRoute instanceof Route && null !== $matchedRouteArgs
+            ? $matchedRoute->process($request, $response, $matchedRouteArgs)
             : $this->notFoundHandler->handle($request);
     }
 

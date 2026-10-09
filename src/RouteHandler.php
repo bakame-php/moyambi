@@ -19,12 +19,12 @@ final readonly class RouteHandler implements RequestHandlerInterface
     public function __construct(
         private Closure $handler,
         private ResponseInterface $response,
-        private Result|ExtractionResult $routeMatch,
+        private Result|ExtractionResult $routeArgs,
     ) {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        return ($this->handler)($request, $this->response, $this->routeMatch);
+        return ($this->handler)($request, $this->response, $this->routeArgs);
     }
 }

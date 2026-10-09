@@ -49,11 +49,11 @@ $router = new Router(
     ),
 );
 
-$router->get('template:/hello/{name}', function (Request $request, Response $response, ExtractionResult $routeMatch) {
-    $name = $routeMatch->string('name', 'World');
+$router->get('template:/hello/{name}', function (Request $request, Response $response, ExtractionResult $routeArgs) {
+    $name = $routeArgs->string('name', 'World');
     $body = $response->getBody();
-    $body->write('Hello '.$name.'!');
-    
+    $body->write('<h1>Hello '.$name.'!</h1>');
+
     return $response->withBody($body);
 });
 

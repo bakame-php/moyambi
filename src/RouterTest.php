@@ -72,11 +72,11 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_dispatches_a_request_to_a_matching_route(): void
     {
-        $this->router->get('pattern:/users/:id', static function (ServerRequestInterface $request, ResponseInterface $response, Result|ExtractionResult $routeMatch): ResponseInterface {
+        $this->router->get('pattern:/users/:id', static function (ServerRequestInterface $request, ResponseInterface $response, Result|ExtractionResult $routeArgs): ResponseInterface {
 
-            assert($routeMatch instanceof Result);
+            assert($routeArgs instanceof Result);
             $body = $response->getBody();
-            $body->write((string) $routeMatch->path->string('id'));
+            $body->write((string) $routeArgs->path->string('id'));
 
             return $response->withBody($body);
         });
@@ -90,10 +90,10 @@ final class RouterTest extends TestCase
     #[Test]
     public function it_dispatches_a_request_to_the_not_foud_handler(): void
     {
-        $this->router->get('pattern:/users/:id', static function (ServerRequestInterface $request, ResponseInterface $response, Result|ExtractionResult $routeMatch): ResponseInterface {
-            assert($routeMatch instanceof Result);
+        $this->router->get('pattern:/users/:id', static function (ServerRequestInterface $request, ResponseInterface $response, Result|ExtractionResult $routeArgs): ResponseInterface {
+            assert($routeArgs instanceof Result);
             $body = $response->getBody();
-            $body->write((string) $routeMatch->path->string('id'));
+            $body->write((string) $routeArgs->path->string('id'));
 
             return $response->withBody($body);
         });
