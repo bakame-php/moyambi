@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bakame\Moyambi;
 
+use BackedEnum;
 use Closure;
 use League\Uri\UriTemplate;
 use League\Uri\UriTemplate\ExtractionResult;
@@ -14,7 +15,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use ValueError;
 
-use function in_array;
 use function is_string;
 use function str_starts_with;
 use function strtoupper;
@@ -33,8 +33,8 @@ final readonly class Route
      */
     public function __construct(
         array $methods,
-        private UrlPattern|UriTemplate $pattern,
-        private Closure $handler,
+        public UrlPattern|UriTemplate $pattern,
+        public Closure $handler,
         public RoutePrecedence $precedence,
         private array $middlewares = [],
     ) {
@@ -80,21 +80,6 @@ final readonly class Route
         );
     }
 
-    public function match(ServerRequestInterface $request): Result|ExtractionResult|null
-    {
-        if ([] !== $this->methods && !in_array($request->getMethod(), $this->methods, true)) {
-            return null;
-        }
-
-        if ($this->pattern instanceof UrlPattern) {
-            return $this->pattern->extract($request->getUri());
-        }
-
-        $result = $this->pattern->extract($request->getUri()->getPath());
-
-        return $result->isSuccessful() ? $result : null;
-    }
-
     public function process(
         ServerRequestInterface $request,
         ResponseInterface $response,
@@ -111,5 +96,13 @@ final readonly class Route
     public function acceptsAnyMethod(): bool
     {
         return [] === $this->methods;
+    }
+
+    public function supportsMethod(BackedEnum|string $method): bool
+    {
+        $method = $method instanceof BackedEnum ? strtoupper((string) $method->value) : strtoupper($method);
+
+        return [] === $this->methods
+            || in_array(strtoupper($method), $this->methods, true);
     }
 }

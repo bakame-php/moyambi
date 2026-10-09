@@ -22,8 +22,7 @@ use function substr;
 
 final class Router implements RequestHandlerInterface
 {
-    /** @var list<Route> */
-    private array $routes = [];
+    private RouteList $routes;
     /** @var list<MiddlewareInterface> */
     private array $middlewares = [];
     private ?MiddlewareStack $middlewareStack = null;
@@ -32,6 +31,7 @@ final class Router implements RequestHandlerInterface
         private readonly ResponseFactoryInterface $responseFactory,
         private readonly RequestHandlerInterface $notFoundHandler,
     ) {
+        $this->routes = new RouteList();
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -43,7 +43,7 @@ final class Router implements RequestHandlerInterface
 
     public function add(Route $route): self
     {
-        $this->routes[] = $route;
+        $this->routes->add($route);
 
         return $this;
     }
@@ -58,27 +58,10 @@ final class Router implements RequestHandlerInterface
 
     public function dispatch(ServerRequestInterface $request): ResponseInterface
     {
-        $response = $this->responseFactory->createResponse();
+        $routeMatch = $this->routes->match($request);
 
-        /** @var ?Route $matchedRoute */
-        $matchedRoute = null;
-        /** @var Result|ExtractionResult|null $matchedRouteArgs */
-        $matchedRouteArgs = null;
-
-        foreach ($this->routes as $route) {
-            $routeArgs = $route->match($request);
-            if (null === $routeArgs) {
-                continue;
-            }
-
-            if (null === $matchedRoute || 0 < RouteComparator::compare($route, $matchedRoute)) {
-                $matchedRoute = $route;
-                $matchedRouteArgs = $routeArgs;
-            }
-        }
-
-        return $matchedRoute instanceof Route && null !== $matchedRouteArgs
-            ? $matchedRoute->process($request, $response, $matchedRouteArgs)
+        return null !== $routeMatch
+            ? $routeMatch->process($request, $this->responseFactory->createResponse())
             : $this->notFoundHandler->handle($request);
     }
 

@@ -333,4 +333,38 @@ final class RouterTest extends TestCase
 
         $this->router->get('/users', static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $response);
     }
+
+    #[Test]
+    public function it_ignores_a_single_trailing_slash(): void
+    {
+        $this
+            ->router
+            ->get(
+                'template:/users/{id}/found',
+                static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
+                    $routeArgs = $request->getAttribute(ExtractionResult::class);
+                    self::assertInstanceOf(ExtractionResult::class, $routeArgs);
+                    $body = $response->getBody();
+                    $body->write((string) $routeArgs->string('id', '24'));
+
+                    return $response->withBody($body);
+                },
+            );
+
+        $request = $this->factory->createServerRequest('GET', 'https://example.com/users/42/found/');
+        $response = $this->router->handle($request);
+
+        self::assertSame('42', (string) $response->getBody());
+    }
+
+    #[Test]
+    public function it_does_not_ignore_multiple_trailing_slashes(): void
+    {
+        $this->router->get('template:/users/{id}/found', static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $response);
+
+        $request = $this->factory->createServerRequest('GET', 'https://example.com/users/42/found//');
+        $response = $this->router->handle($request);
+
+        self::assertSame(404, $response->getStatusCode());
+    }
 }

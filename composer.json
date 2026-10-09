@@ -64,6 +64,7 @@
     "phpstan": "phpstan analyse -c phpstan.neon --ansi --memory-limit=256M",
     "phpunit": "XDEBUG_MODE=coverage phpunit --coverage-text",
     "phpunit:no-coverage": "phpunit --no-coverage",
+    "demo": "@php -S localhost:4044 demo/router.php",
     "test": [
       "@phpunit",
       "@phpstan",
