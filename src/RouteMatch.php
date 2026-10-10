@@ -19,6 +19,9 @@ final readonly class RouteMatch
 
     public function process(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        return $this->route->process($request, $response, $this->arguments);
+        $stack = new MiddlewareStack(new RouteHandler($this->route->handler, $response, $this->arguments));
+        $stack->push(...$this->route->middlewares);
+
+        return $stack->handle($request->withAttribute($this->arguments::class, $this->arguments));
     }
 }

@@ -115,7 +115,7 @@ final class RouterTest extends TestCase
 
                     return $response->withBody($body);
                 },
-                precedence: 10,
+                precedence: RoutePrecedence::Lower,
             )
             ->get(
                 'pattern:/users/me',
@@ -125,7 +125,6 @@ final class RouterTest extends TestCase
 
                     return $response->withBody($body);
                 },
-                precedence: 20,
             );
 
         $response = $this->router->handle($this->factory->createServerRequest('GET', 'https://example.com/users/me'));
@@ -175,14 +174,14 @@ final class RouterTest extends TestCase
         };
 
         $this->router
-            ->get(UrlPattern::from('/users'), $handler)
-            ->post(UrlPattern::from('/users'), $handler)
-            ->patch(UrlPattern::from('/users'), $handler)
-            ->delete(UrlPattern::from('/users'), $handler)
-            ->options(UrlPattern::from('/users'), $handler)
-            ->head(UrlPattern::from('/users'), $handler)
-            ->query(UrlPattern::from('/users'), $handler)
-            ->put(UrlPattern::from('/users'), $handler);
+            ->get(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->post(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->patch(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->delete(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->options(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->head(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->query(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
+            ->put(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular);
 
         $response = $this->router->handle($this->factory->createServerRequest($method, 'https://example.com/users'));
 

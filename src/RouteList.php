@@ -21,9 +21,11 @@ final class RouteList implements IteratorAggregate, Countable
     /** @var list<Route> */
     private array $routes = [];
 
-    public function add(Route $route): self
+    public function add(Route ...$routes): self
     {
-        $this->routes[] = $route;
+        foreach ($routes as $route) {
+            $this->routes[] = $route;
+        }
 
         return $this;
     }
@@ -53,16 +55,17 @@ final class RouteList implements IteratorAggregate, Countable
         $method = $request->getMethod();
         $matched = null;
         foreach ($this as $route) {
-            $routeArgs = $this->routeMatch($route, $method, $uri, $path);
-            if (null === $routeArgs) {
+            $routeArguments = $this->routeMatch($route, $method, $uri, $path);
+            if (null === $routeArguments) {
                 continue;
             }
 
-            if (null !== $matched && 0 >= RouteComparator::compare($route, $matched->route)) {
-                continue;
+            $routeMatch = new RouteMatch($route, $routeArguments);
+            if (RoutePrecedence::Regular === $route->precedence && !$route->acceptsAnyMethod()) {
+                return $routeMatch;
             }
 
-            $matched = new RouteMatch($route, $routeArgs);
+            $matched = $routeMatch;
         }
 
         return $matched;

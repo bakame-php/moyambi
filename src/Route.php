@@ -36,7 +36,7 @@ final readonly class Route
         public UrlPattern|UriTemplate $pattern,
         public Closure $handler,
         public RoutePrecedence $precedence,
-        private array $middlewares = [],
+        public array $middlewares = [],
     ) {
         foreach ($this->middlewares as $middleware) {
             $middleware instanceof MiddlewareInterface || throw new ValueError('The middleware must implement the MiddlewareInterface');
@@ -60,36 +60,20 @@ final readonly class Route
         UrlPattern|UriTemplate|string $pattern,
         Closure $handler,
         array $middlewares = [],
-        RoutePrecedence|int $precedence = 0,
+        RoutePrecedence $precedence = RoutePrecedence::Regular,
     ): self {
-
-        $pattern = match (true) {
-            $pattern instanceof UrlPattern,
-            $pattern instanceof UriTemplate => $pattern,
-            str_starts_with($pattern, 'pattern:') => UrlPattern::from(substr($pattern, 8)),
-            str_starts_with($pattern, 'template:') => new UriTemplate(substr($pattern, 9)),
-            default => throw new ValueError('The route string pattern must use the "pattern:" or "template:" prefix.'),
-        };
-
         return new self(
             $methods,
-            $pattern,
+            match (true) {
+                $pattern instanceof UrlPattern,
+                $pattern instanceof UriTemplate => $pattern,
+                str_starts_with($pattern, 'pattern:') => UrlPattern::from(substr($pattern, 8)),
+                str_starts_with($pattern, 'template:') => new UriTemplate(substr($pattern, 9)),
+                default => throw new ValueError('The route string pattern must use the "pattern:" or "template:" prefix.'),
+            },
             $handler,
-            $precedence instanceof RoutePrecedence ? $precedence : new RoutePrecedence($precedence),
+            $precedence,
             $middlewares,
-        );
-    }
-
-    public function process(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        Result|ExtractionResult $routeArgs,
-    ): ResponseInterface {
-        return new MiddlewareStack(
-            handler: new RouteHandler($this->handler, $response, $routeArgs),
-            middlewares: $this->middlewares,
-        )->handle(
-            $request->withAttribute($routeArgs::class, $routeArgs)
         );
     }
 
