@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bakame\Moyambi;
 
-use Countable;
 use IteratorAggregate;
 use League\Uri\UriTemplate\ExtractionResult;
 use League\Uri\UrlPattern;
@@ -16,7 +15,7 @@ use Traversable;
 /**
  * @implements IteratorAggregate<Route>
  */
-final class RouteList implements IteratorAggregate, Countable
+final class RouteList implements IteratorAggregate
 {
     /** @var list<Route> */
     private array $routes = [];
@@ -28,11 +27,6 @@ final class RouteList implements IteratorAggregate, Countable
         }
 
         return $this;
-    }
-
-    public function count(): int
-    {
-        return count($this->routes);
     }
 
     /**

@@ -62,87 +62,6 @@ final class Router implements RequestHandlerInterface
     }
 
     /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function get(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function post(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function put(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function patch(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function delete(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function query(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function head(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function options(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map(self::httpMethod(__METHOD__), $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
-     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
-     * @param list<MiddlewareInterface> $middlewares
-     */
-    public function any(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
-    {
-        return $this->map([], $pattern, $handler, $middlewares, $precedence);
-    }
-
-    /**
      * @param list<non-empty-string> $methods
      * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
      * @param list<MiddlewareInterface> $middlewares
@@ -158,14 +77,97 @@ final class Router implements RequestHandlerInterface
     }
 
     /**
-     * @param non-empty-string $method
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function get(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function post(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function put(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function patch(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function delete(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function query(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function head(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function options(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map(self::nameToHttp(__METHOD__), $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * @param Closure(ServerRequestInterface, ResponseInterface, Result|ExtractionResult): ResponseInterface $handler
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function any(UrlPattern|UriTemplate|string $pattern, Closure $handler, array $middlewares = [], RoutePrecedence $precedence = RoutePrecedence::Regular): self
+    {
+        return $this->map([], $pattern, $handler, $middlewares, $precedence);
+    }
+
+    /**
+     * Convert a method name to a Http Method name.
+     *
+     * @param non-empty-string $methodName
      *
      * @return list<non-empty-string>
      */
-    private static function httpMethod(string $method): array
+    private static function nameToHttp(string $methodName): array
     {
-        $res = strtoupper(substr($method, strlen(self::class) + 2));
+        $res = strtoupper(substr($methodName, strlen(self::class) + 2));
 
-        return '' !== $res ? [$res] : throw new ValueError('The HTTP method "'.$method.'" is invalid.');
+        return '' !== $res ? [$res] : throw new ValueError('The HTTP method "'.$methodName.'" is invalid.');
     }
 }
