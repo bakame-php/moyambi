@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Bakame\Moyambi;
 
 use League\Uri\UriTemplate\ExtractionResult;
-use League\Uri\UrlPattern;
 use League\Uri\UrlPattern\Result;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -174,14 +173,14 @@ final class RouterTest extends TestCase
         };
 
         $this->router
-            ->get(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->post(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->patch(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->delete(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->options(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->head(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->query(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular)
-            ->put(UrlPattern::from('/users'), $handler, precedence: RoutePrecedence::Regular);
+            ->get('pattern:/users', $handler)
+            ->post('pattern:/users', $handler)
+            ->patch('pattern:/users', $handler)
+            ->delete('pattern:/users', $handler)
+            ->options('pattern:/users', $handler)
+            ->head('pattern:/users', $handler)
+            ->query('pattern:/users', $handler)
+            ->put('pattern:/users', $handler);
 
         $response = $this->router->handle($this->factory->createServerRequest($method, 'https://example.com/users'));
 
@@ -211,7 +210,7 @@ final class RouterTest extends TestCase
     {
         $this->router
             ->any(
-                UrlPattern::from('/users'),
+                'pattern:/users',
                 static function (
                     ServerRequestInterface $request,
                     ResponseInterface $response,
@@ -223,7 +222,7 @@ final class RouterTest extends TestCase
                 },
             )
             ->get(
-                UrlPattern::from('/users'),
+                'pattern:/users',
                 static function (
                     ServerRequestInterface $request,
                     ResponseInterface $response,
@@ -247,7 +246,7 @@ final class RouterTest extends TestCase
         $middleware = $this->middleware($events, 'before-route-middleware', 'after-route-middleware');
 
         $this->router->get(
-            UrlPattern::from('/users'),
+            'pattern:/users',
             static function (ServerRequestInterface $request, ResponseInterface $response) use (&$events): ResponseInterface {
                 $events[] = 'inside-route-handler';
 
@@ -275,7 +274,7 @@ final class RouterTest extends TestCase
         $this->router
             ->addMiddleware($middleware)
             ->get(
-                UrlPattern::from('/users'),
+                'pattern:/users',
                 static function (ServerRequestInterface $request, ResponseInterface $response) use (&$events): ResponseInterface {
                     $events[] = 'inside-route-handler';
 

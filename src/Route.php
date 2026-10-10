@@ -10,6 +10,7 @@ use League\Uri\UriTemplate;
 use League\Uri\UriTemplate\ExtractionResult;
 use League\Uri\UrlPattern;
 use League\Uri\UrlPattern\Result;
+use League\Uri\UrlPatternBuilder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -67,7 +68,7 @@ final readonly class Route
             match (true) {
                 $pattern instanceof UrlPattern,
                 $pattern instanceof UriTemplate => $pattern,
-                str_starts_with($pattern, 'pattern:') => UrlPattern::from(substr($pattern, 8)),
+                str_starts_with($pattern, 'pattern:') => UrlPatternBuilder::from(substr($pattern, 8))->build(),
                 str_starts_with($pattern, 'template:') => new UriTemplate(substr($pattern, 9)),
                 default => throw new ValueError('The route string pattern must use the "pattern:" or "template:" prefix.'),
             },
